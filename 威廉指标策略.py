@@ -1,8 +1,9 @@
 import math
 import pandas as pd
-from utils import get_hist_df, get_w_r, run_all_in_sim, 生成买卖点_基础
+from utils import 获取历史数据, get_w_r, run_all_in_sim, 生成买卖点_基础, 生成均线
 
-开始时间 = '20230101'
+开始时间 = '20220101'
+静态数据 = True
 快慢粘连阈值 = 3
 稳定粘连阈值 = 5 # 天
 买卖稳定阈值 = 5 # 天
@@ -16,7 +17,9 @@ from utils import get_hist_df, get_w_r, run_all_in_sim, 生成买卖点_基础
   '买入价',
   '卖出点',
   '卖出价',
-  '收盘'
+  '收盘',
+  '最高',
+  '最低'
 ]
 调试列 = [
   '日期',
@@ -75,7 +78,8 @@ def 处理威廉指标(df: pd.DataFrame):
 
 def 威廉指标策略_生成(均线参数, 买入准备, 买入, 卖出准备, 卖出):
   def x(stock: str):
-    df = get_hist_df(stock, start_date=开始时间 ,mas=均线参数)
+    df = 获取历史数据(stock,开始时间=开始时间,静态数据=静态数据)
+    df = 生成均线(df, 均线参数)
     df = 处理威廉指标(df)
     买入价 = lambda x: x['开盘']
     卖出价 = lambda x: x['开盘']
@@ -105,14 +109,24 @@ def 批量测试():
   test_list = [
     # '601919',
     # '601138',
-    '600522',
-    '601838',
+    # '600522',
+    # '601838',
     # '001979',
     # '600887',
     # '000001',
     # '002311',
-    '601899',
+    # '601899',
     # '601288',
+    '000661',
+    '603688',
+    '301589',
+    '002304',
+    '600519',
+    '600809',
+    '000858',
+    '000596',
+    '000568',
+    '688169',
   ]
   sty = {
    '威廉指标策略_1': 威廉指标策略_1, 
@@ -126,6 +140,8 @@ def 批量测试():
       msg += f'\n{name}: {res["盈亏比例"]}%'
     print(msg)
 
+批量测试()
+
 def 单个测试(stock):
   sty = {
    '威廉指标策略_1': 威廉指标策略_1, 
@@ -133,8 +149,9 @@ def 单个测试(stock):
   }
   print(f'\n====== [{stock}] ======')
   for name, func in sty.items():
-    res = run_all_in_sim(func(stock))
+    res = run_all_in_sim(func(stock), 止盈=0.2)
+    # res = run_all_in_sim(func(stock))
     print(f'\n{name}: {res["盈亏比例"]}%')
     print(res['交易记录'].to_string())
 
-单个测试('600522')
+# 单个测试('603688')

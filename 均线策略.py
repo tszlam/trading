@@ -57,7 +57,7 @@ def 单个测试(stock):
     print(f'\n{name}: {res["盈亏比例"]}%')
     print(res['交易记录'].to_string())
 
-单个测试('600887')
+单个测试('603688')
 
 def 批量测试():
   test_list = [
