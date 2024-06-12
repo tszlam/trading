@@ -53,11 +53,11 @@ def 单个测试(stock):
   print(f'\n====== [{stock}] ======')
   for name, func in sty.items():
     # res = run_all_in_sim(func(df), 止盈=0.1, 止亏=0.1)
-    res = run_all_in_sim(func(df), 止亏=0.1)
+    res = run_all_in_sim(func(df), 止亏=0)
     print(f'\n{name}: {res["盈亏比例"]}%')
     print(res['交易记录'].to_string())
 
-单个测试('603688')
+单个测试('600036')
 
 def 批量测试():
   test_list = [

@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from utils import 获取历史数据
 
-股票列表 = pd.read_csv('./data/stock_list.csv')
+股票列表 = pd.read_csv('./stock_list.csv')
 total = len(股票列表)
 
 def 将文件的日期转成接口日期(日期):
@@ -11,8 +11,10 @@ def 将文件的日期转成接口日期(日期):
 
 for i, x in 股票列表.iterrows():
   股票代码: str = str(x['code']).zfill(6)
+  # 只要沪深的
+  if (not 股票代码.startswith('0')) and (not 股票代码.startswith('6')):
+    continue
   文件路径 = f'./data/{股票代码}.csv'
-  
   if os.path.exists(文件路径):
     # 补全数据
     历史df = pd.read_csv(文件路径)

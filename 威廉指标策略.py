@@ -4,7 +4,7 @@ from utils import 获取历史数据, get_w_r, run_all_in_sim, 生成买卖点_�
 
 开始时间 = '20220101'
 静态数据 = True
-快慢粘连阈值 = 3
+快慢贴合阈值 = 3
 稳定粘连阈值 = 5 # 天
 买卖稳定阈值 = 5 # 天
 买入点窗口 = 3 # 天
@@ -48,6 +48,38 @@ from utils import 获取历史数据, get_w_r, run_all_in_sim, 生成买卖点_�
   # '卖出价'
 ]
 
+快参数 = 21
+慢参数 = 42
+def 处理威廉指标_通用(df: pd.DataFrame, **参数):
+  df = df.copy()
+  _快参数 = 参数.get('快', 快参数)
+  _慢参数 = 参数.get('慢', 慢参数)
+  df['WR_快'] = get_w_r(df, _快参数)
+  df['WR_慢'] = get_w_r(df, _慢参数)
+  df.dropna(inplace=True)
+  df['WR_快慢差值'] = abs(df['WR_快'] - df['WR_慢'])
+
+  return df
+
+def 处理威廉指标_额外(df: pd.DataFrame, **参数):
+  df = df.copy()
+  _快慢贴合阈值 = 参数.get('快慢贴合阈值', 快慢贴合阈值)
+  _超卖阈值 = 参数.get('超卖阈值', 超卖阈值)
+  _超买阈值 = 参数.get('超买阈值', 超买阈值)
+  df['WR_快慢贴合'] = (df['WR_快慢差值'] < _快慢贴合阈值).astype(int)
+  # 超卖
+  df['WR_超卖_快'] = (df['WR_快'] >= _超卖阈值).astype(int)
+  df['WR_超卖_慢'] = (df['WR_慢'] >= _超卖阈值).astype(int)
+  df['WR_超卖'] = (df['WR_超卖_快'] + df['WR_超卖_慢'] == 2).astype(int)
+  # 超买
+  df['WR_超买_快'] = (df['WR_快'] <= _超买阈值).astype(int)
+  df['WR_超买_慢'] = (df['WR_慢'] <= _超买阈值).astype(int)
+  df['WR_超买'] = (df['WR_超买_快'] + df['WR_超买_慢'] == 2).astype(int)
+  # df.dropna(inplace=True)
+
+  return df
+  
+
 def 处理威廉指标(df: pd.DataFrame):
   df['WR_21'] = get_w_r(df, 21)
   df['WR_42'] = get_w_r(df, 42)
@@ -62,7 +94,7 @@ def 处理威廉指标(df: pd.DataFrame):
   df['不超卖'] = ((df['超卖_21'] + df['超卖_42']) == 0).astype(int)
   
   df['WR_diff'] = abs(df['WR_21'] - df['WR_42']).apply(lambda x: math.ceil(x))
-  df['是否粘连'] = (df['WR_diff'] < 快慢粘连阈值).astype(int)
+  df['是否粘连'] = (df['WR_diff'] < 快慢贴合阈值).astype(int)
   df[f'粘连持续'] = (df['是否粘连'].rolling(稳定粘连阈值).mean() == 1).astype(int)
   df[f'超卖持续'] = (df['超卖'].rolling(买卖稳定阈值).mean() == 1).astype(int)
   df['超卖稳定'] = ((df[f'粘连持续'] + df[f'超卖持续']) == 2).astype(int)
@@ -140,7 +172,7 @@ def 批量测试():
       msg += f'\n{name}: {res["盈亏比例"]}%'
     print(msg)
 
-批量测试()
+# 批量测试()
 
 def 单个测试(stock):
   sty = {
